@@ -1,0 +1,15 @@
+node_modules
+.wrangler
+.dev.vars
+.env
+.env.local
+.env.*
+!.env.example
+*.pem
+service-account.json
+.DS_Store
+worker-configuration.d.ts
+.cursor/
+.vscode/
+.idea/
+*.code-workspace
