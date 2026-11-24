@@ -16,11 +16,23 @@ import { parseMode, settingsPageHtml } from "./lib/settings-page"
 import { inviteLink, isBrainUnlocked } from "./lib/credits"
 import { repliesOf, wrapEnv } from "./lib/replies"
 import { devChatPage } from "./lib/dev-page"
+import {
+  exchangeInstagramCode,
+  exchangeLongLivedToken,
+  extractInstagramCode,
+  igOauthRedirectUri,
+  igSetupPageHtml,
+  instagramAuthorizeUrl,
+} from "./lib/ig-oauth"
 
 const app = new Hono<{ Bindings: Bindings }>()
 
 function notionRedirectUri(env: Bindings): string {
   return `${env.PUBLIC_URL.replace(/\/$/, "")}/auth/notion/callback`
+}
+
+function igOauthAllowed(env: Bindings): boolean {
+  return env.ALLOW_DEV_INBOX === "true" || env.ALLOW_IG_OAUTH_SETUP === "true"
 }
 
 function html(
@@ -52,6 +64,72 @@ app.get("/dev", (c) => {
     200,
     "; script-src 'unsafe-inline'; connect-src 'self'",
   )
+})
+
+app.get("/setup/ig", (c) => {
+  if (!igOauthAllowed(c.env)) return c.text("off", 404)
+  const appId = (c.env.INSTAGRAM_APP_ID || "").trim()
+  const secret = (c.env.IG_APP_SECRET || "").trim()
+  const redirectUri = igOauthRedirectUri(c.env.IG_OAUTH_REDIRECT_URI)
+  return html(
+    igSetupPageHtml({
+      configured: Boolean(appId && secret),
+      authorizeUrl: appId ? instagramAuthorizeUrl(appId, redirectUri) : undefined,
+      redirectUri,
+      error: c.req.query("error") || undefined,
+    }),
+    200,
+    "; script-src 'unsafe-inline'",
+  )
+})
+
+app.get("/setup/ig/start", (c) => {
+  if (!igOauthAllowed(c.env)) return c.text("off", 404)
+  const appId = (c.env.INSTAGRAM_APP_ID || "").trim()
+  const secret = (c.env.IG_APP_SECRET || "").trim()
+  const redirectUri = igOauthRedirectUri(c.env.IG_OAUTH_REDIRECT_URI)
+  if (!appId || !secret) return c.redirect("/setup/ig")
+  return c.redirect(instagramAuthorizeUrl(appId, redirectUri))
+})
+
+app.post("/setup/ig/exchange", async (c) => {
+  if (!igOauthAllowed(c.env)) return c.text("off", 404)
+  const appId = (c.env.INSTAGRAM_APP_ID || "").trim()
+  const secret = (c.env.IG_APP_SECRET || "").trim()
+  const redirectUri = igOauthRedirectUri(c.env.IG_OAUTH_REDIRECT_URI)
+  if (!appId || !secret) {
+    return html(igSetupPageHtml({ configured: false, redirectUri, error: "Add INSTAGRAM_APP_ID and IG_APP_SECRET first." }))
+  }
+  const form = await c.req.parseBody()
+  const callback = typeof form.callback === "string" ? form.callback : ""
+  try {
+    const code = extractInstagramCode(callback)
+    const shortLived = await exchangeInstagramCode({ appId, appSecret: secret, redirectUri, code })
+    const longLived = await exchangeLongLivedToken({
+      appSecret: secret,
+      shortLivedToken: shortLived.accessToken,
+    })
+    return html(
+      igSetupPageHtml({
+        configured: true,
+        redirectUri,
+        token: longLived.accessToken,
+        expiresIn: longLived.expiresIn,
+        userId: shortLived.userId,
+      }),
+      200,
+      "; script-src 'unsafe-inline'",
+    )
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Token exchange failed"
+    return html(
+      igSetupPageHtml({
+        configured: true,
+        redirectUri,
+        error: message.slice(0, 400),
+      }),
+    )
+  }
 })
 
 app.get("/webhook", (c) => {

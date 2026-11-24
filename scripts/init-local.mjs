@@ -18,8 +18,10 @@ writeFileSync(
 PUBLIC_URL="http://127.0.0.1:8787"
 BOT_NAME="instabot"
 IG_VERIFY_TOKEN="local-verify-token"
+INSTAGRAM_APP_ID=""
 IG_APP_SECRET=""
 IG_ACCESS_TOKEN=""
+IG_OAUTH_REDIRECT_URI="https://localhost/"
 ENCRYPTION_KEY="${key}"
 
 ALLOW_DEV_INBOX="true"

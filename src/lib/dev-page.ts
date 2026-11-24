@@ -11,6 +11,7 @@ export function devChatPage(secret: string): string {
     main { max-width: 32rem; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
     header { padding:1rem; border-bottom:1px solid #27272a; }
     header p { margin:.35rem 0 0; color:#a1a1aa; font-size:.85rem; }
+    header a { color:#e4e4e7; }
     #log { flex:1; padding:1rem; display:flex; flex-direction:column; gap:.6rem; overflow:auto; }
     .me, .bot { max-width:85%; padding:.7rem .85rem; border-radius:14px; white-space:pre-wrap; font-size:.92rem; line-height:1.4; }
     .me { align-self:flex-end; background:#fff; color:#000; }
@@ -27,7 +28,7 @@ export function devChatPage(secret: string): string {
 <main>
   <header>
     <strong>InstaBot — local chat</strong>
-    <p>Same logic as Instagram DMs. This page is off in production. Follow is simulated: you are already a “follower” here.</p>
+    <p>Same logic as Instagram DMs. This page is off in production. Follow is simulated: you are already a “follower” here. Token helper: <a href="/setup/ig">/setup/ig</a></p>
   </header>
   <div id="log"></div>
   <div class="row">

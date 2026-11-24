@@ -4,6 +4,9 @@ export type Bindings = {
   IG_VERIFY_TOKEN: string
   IG_APP_SECRET: string
   IG_ACCESS_TOKEN: string
+  INSTAGRAM_APP_ID?: string
+  IG_OAUTH_REDIRECT_URI?: string
+  ALLOW_IG_OAUTH_SETUP?: string
   ENCRYPTION_KEY: string
   IG_GRAPH_MESSAGES_URL?: string
   BOT_NAME?: string

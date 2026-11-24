@@ -48,6 +48,17 @@ Shared AI **spends** credits. A personal API key on the settings page does not.
 
 Save modes: **chat** (reply and forget), **brain** (our database, after some growth credits), **notion** (optional).
 
+## Instagram token (Generate token is often broken)
+
+Meta’s **Generate token** button frequently does nothing after login. Skip it.
+
+1. In the Meta app, finish **Instagram → API setup with Instagram login → 4. Set up Instagram business login**.
+2. Set **OAuth redirect URIs** to exactly `https://localhost/`
+3. Copy **Instagram app ID** and **Instagram app secret** (not the Facebook ones) into `.dev.vars` as `INSTAGRAM_APP_ID` and `IG_APP_SECRET`.
+4. Either open http://127.0.0.1:8787/setup/ig while `npm run local` is running, or run `npm run ig-token`.
+5. Log in as the **bot** Instagram. The browser will fail to load `https://localhost/` — copy the full address bar (`?code=...`) and paste it into the helper.
+6. Put the long-lived token in `IG_ACCESS_TOKEN`. Never commit it or paste it in chat.
+
 ## Setup
 
 1. Professional Instagram account. Message controls: followers only.

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "wrangler dev --port 8787",
     "local": "node scripts/init-local.mjs && wrangler d1 migrations apply instabot --local && wrangler dev --port 8787",
+    "ig-token": "node scripts/get-ig-token.mjs",
     "deploy": "wrangler deploy",
     "db:migrate:local": "wrangler d1 migrations apply instabot --local",
     "db:migrate:remote": "wrangler d1 migrations apply instabot --remote",
