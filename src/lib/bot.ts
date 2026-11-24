@@ -216,19 +216,18 @@ async function handleAiTurn(
   }
 
   const hasMedia = Boolean(event.message?.attachments?.length)
-  if (ai.shared) {
-    const cost = aiCost(env, hasMedia)
-    const paid = await spendCredits(env, user, cost)
-    if (!paid) {
-      const bot = env.BOT_NAME || "instabot"
-      await sendInstagramText(
-        env,
-        user.igsid,
-        `Not enough credits (${user.credits}, need ${cost}). Earn more, or add your own AI key.\n\n${earnHint(env, bot)}\n\n${await openSettings(env, user.igsid)}`,
-      )
-      return
-    }
-    user = paid
+  // Only the shared paid AI costs credits; the built-in local extractor and a
+  // user's own key are free. Check the balance now, but charge only after the
+  // AI call succeeds so failures and empty results never cost anything.
+  const cost = ai.shared && ai.provider !== "local" ? aiCost(env, hasMedia) : 0
+  if (cost > 0 && user.credits < cost) {
+    const bot = env.BOT_NAME || "instabot"
+    await sendInstagramText(
+      env,
+      user.igsid,
+      `Not enough credits (${user.credits}, need ${cost}). Earn more, or add your own AI key.\n\n${earnHint(env, bot)}\n\n${await openSettings(env, user.igsid)}`,
+    )
+    return
   }
 
   const transcript = await mediaTranscript(env, user, event)
@@ -239,6 +238,10 @@ async function handleAiTurn(
 
   try {
     const intent = await interpretMessage(ai, text, transcript)
+    if (cost > 0) {
+      const paid = await spendCredits(env, user, cost)
+      if (paid) user = paid
+    }
 
     if (intent.action === "show") {
       const kind =
